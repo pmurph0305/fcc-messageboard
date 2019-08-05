@@ -116,6 +116,7 @@ module.exports = function (app, db) {
           },  
           $push: { 
             replies: {
+              _id: ObjectID(),
               text: text,
               created_on: new Date,
               delete_password: delete_password,
@@ -161,6 +162,14 @@ module.exports = function (app, db) {
           }
         });
       }
+    })
+
+    // US 8: I can delete a post(just changing the text to '[deleted]') if I send a DELETE request to /api/replies/{board}
+    // and pass along the thread_id, reply_id, & delete_password. (Text response will be 'incorrect password' or 'success')
+    .delete(function(req, res) {
+      let board = req.params.board;
+      let thread_id = req.body.thread_id;
+      let reply_id = req.body.reply_id;
     })
 
 };

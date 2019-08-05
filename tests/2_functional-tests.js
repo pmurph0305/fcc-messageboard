@@ -60,7 +60,7 @@ suite('Functional Tests', function() {
             assert.hasAllKeys(res.body[i], ["text", "created_on", "bumped_on", "replies", "_id"]);
             for(let j=0; j<res.body[i].replies.length; j++) {
               // and make sure each reply has the correct keys as well.
-              assert.hasAllKeys(res.body[i].replies[j], ["text", "created_on"]);
+              assert.hasAllKeys(res.body[i].replies[j], ["text", "created_on", "_id"]);
               assert.doesNotHaveAnyKeys(res.body[i].replies[j], ["delete_password", "reported"]);
             }
           }
@@ -69,7 +69,7 @@ suite('Functional Tests', function() {
       });
     });
     
-    // I can delete a thread completely if I send a DELETE request to /api/threads/{board}
+    // US 8: I can delete a thread completely if I send a DELETE request to /api/threads/{board}
     // and pass along the thread_id & delete_password. (Text response will be 'incorrect password' or 'success')
     suite('DELETE', function() {
       test('DELETE a thread with invalid and then valid password', function(done) {
@@ -149,7 +149,7 @@ suite('Functional Tests', function() {
           assert.hasAllKeys(res.body, ["_id", "text", "created_on", "bumped_on", "replies"]);
           assert.doesNotHaveAllKeys(res.body, ["delete_password", "reported"]);
           for (let i = 0; i < res.body.replies.length; i++) {
-            assert.hasAllKeys(res.body.replies[i], ["text", "created_on"]);
+            assert.hasAllKeys(res.body.replies[i], ["text", "created_on", "_id"]);
             assert.doesNotHaveAllKeys(res.body.replies[i], ["delete_password", "reported"]);
           }
           done();
@@ -161,6 +161,8 @@ suite('Functional Tests', function() {
       
     });
     
+    // US 8: I can delete a post(just changing the text to '[deleted]') if I send a DELETE request to /api/replies/{board} 
+    // and pass along the thread_id, reply_id, & delete_password. (Text response will be 'incorrect password' or 'success')
     suite('DELETE', function() {
       
     });
