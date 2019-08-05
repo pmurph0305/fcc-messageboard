@@ -165,6 +165,40 @@ suite('Functional Tests', function() {
     // and pass along the thread_id, reply_id, & delete_password. (Text response will be 'incorrect password' or 'success')
     suite('DELETE', function() {
       
+      test("DELETE reply with incorrect then correct password", function(done) {
+        chai.request(server)
+        .get('/api/replies/tests?thread_id='+test_thread_id)
+        .end(function(err, res) {
+          assert.equal(res.status, 200);
+          assert.isArray(res.body.replies);
+          assert.isAtLeast(res.body.replies.length, 1);
+          let reply_id = res.body.replies[0]["_id"];
+          chai.request(server)
+          .delete('/api/replies/tests')
+          .send({
+            thread_id: test_thread_id,
+            reply_id: reply_id,
+            delete_password: 'incorrect'
+          })
+          .end(function(err1, res1) {
+            assert.equal(res1.status, 200);
+            assert.equal(res1.body.message, "incorrect password");
+            chai.request(server)
+            .delete('/api/replies/tests')
+            .send({
+              thread_id: test_thread_id,
+              reply_id: reply_id,
+              delete_password: 'test delete reply'
+            })
+            .end(function(err2, res2) {
+              assert.equal(res2.status, 200);
+              assert.equal(res2.body.message, "success");
+              done();
+            });
+          });
+        });
+      });
+
     });
     
   });
