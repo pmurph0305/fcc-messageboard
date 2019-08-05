@@ -68,6 +68,31 @@ module.exports = function (app, db) {
         res.json(result);
       });
     })
+
+    // US 8: I can delete a thread completely if I send a DELETE request to /api/threads/{board}
+    // and pass along the thread_id & delete_password. (Text response will be 'incorrect password' or 'success')
+    .delete(function(req, res) {
+      let thread_id = req.body.thread_id;
+      let delete_password = req.body.delete_password;
+      let board = req.params.board;
+      if (!ObjectID.isValid(thread_id)) {
+        res.sendStatus(400);
+      } else {
+        db.collection(board).deleteOne({
+          _id: ObjectID(thread_id),
+          delete_password: delete_password
+        }, function(error, result) {
+          if (error) res.sendStatus(500);
+          else {
+            if (result.deletedCount === 1) {
+              res.json({ message: "success" });
+            } else {
+              res.json({ message: "incorrect password" });
+            }
+          }
+        });
+      }
+    })
     
   app.route('/api/replies/:board')
     // US 5: I can POST a reply to a thead on a specific board by passing

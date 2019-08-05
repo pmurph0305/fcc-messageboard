@@ -69,8 +69,44 @@ suite('Functional Tests', function() {
       });
     });
     
+    // I can delete a thread completely if I send a DELETE request to /api/threads/{board}
+    // and pass along the thread_id & delete_password. (Text response will be 'incorrect password' or 'success')
     suite('DELETE', function() {
-      
+      test('DELETE a thread with invalid and then valid password', function(done) {
+        // create a new thread for the test.
+        chai.request(server)
+        .post('/api/threads/tests')
+        .send({
+          text: 'test',
+          delete_password: 'delete test'
+        })
+        .end(function (err, res) {
+          let id = res.redirects[0].match(/\w+$/);
+          let thread_id = id[0];
+          assert.equal(res.status, 200);
+          chai.request(server)
+          .delete('/api/threads/tests')
+          .send({
+            thread_id: thread_id,
+            delete_password: 'incorrect',
+          })
+          .end(function(err2, res2) {
+            assert.equal(res2.status, 200);
+            assert.equal(res2.body.message, "incorrect password");
+            chai.request(server)
+            .delete('/api/threads/tests')
+            .send({
+              thread_id: thread_id,
+              delete_password: 'delete test'
+            })
+            .end(function(err3, res3) {
+              assert.equal(res3.status, 200);
+              assert.equal(res3.body.message, "success");
+              done();
+            });
+          });
+        });
+      });
     });
     
     suite('PUT', function() {
