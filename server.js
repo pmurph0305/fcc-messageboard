@@ -1,9 +1,11 @@
 'use strict';
-
+require('dotenv').config();
 var express     = require('express');
 var bodyParser  = require('body-parser');
 var expect      = require('chai').expect;
 var cors        = require('cors');
+var helmet      = require('helmet');
+var expressMongoDB = require('express-mongo-db');
 
 var apiRoutes         = require('./routes/api.js');
 var fccTestingRoutes  = require('./routes/fcctesting.js');
@@ -11,12 +13,20 @@ var runner            = require('./test-runner');
 
 var app = express();
 
+
+
 app.use('/public', express.static(process.cwd() + '/public'));
-
 app.use(cors({origin: '*'})); //For FCC testing purposes only
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(expressMongoDB(process.env.DB));
+
+// US 1: Only allow your site to be loading in an iFrame on your own pages.
+app.use(helmet.frameguard({ action: 'sameorigin' }));
+// US 2: Do not allow DNS prefetching.
+app.use(helmet.dnsPrefetchControl());
+// US 3: Only allow your site to send the referrer for your own pages.
+app.use(helmet.referrerPolicy({ policy: 'same-origin' }));
 
 //Sample front-end
 app.route('/b/:board/')
