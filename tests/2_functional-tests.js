@@ -17,8 +17,6 @@ suite('Functional Tests', function() {
 
   let test_thread_id = '';
   suite('API ROUTING FOR /api/threads/:board', function() {
-    
-
     // US 4: I can POST a thread to a specific message board by passing form data text and delete_password to /api/threads/{board}.
     // (Recomend res.redirect to board page /b/{board})
     //  Saved will be _id, text, created_on(date&time), bumped_on(date&time, starts same as created_on), reported(boolean), delete_password, & replies(array).
@@ -39,11 +37,10 @@ suite('Functional Tests', function() {
           let id = res.redirects[0].match(/\w+$/);
           test_thread_id = id[0];
           done();
-        })
-      })
+        });
+      });
     });
     
-
     // US 6: I can GET an array of the most recent 10 bumped threads on the board with only the most recent 3 replies from /api/threads/{board}. 
     // The reported and delete_passwords fields will not be sent.
     suite('GET', function() {
@@ -84,8 +81,7 @@ suite('Functional Tests', function() {
   });
   
   suite('API ROUTING FOR /api/replies/:board', function() {
-    
-    // I can POST a reply to a thead on a specific board by passing form data text, delete_password, & thread_id to /api/replies/{board} 
+    // US 5: I can POST a reply to a thead on a specific board by passing form data text, delete_password, & thread_id to /api/replies/{board} 
     // and it will also update the bumped_on date to the comments date.(Recomend res.redirect to thread page /b/{board}/{thread_id})
     // In the thread's 'replies' array will be saved _id, text, created_on, delete_password, & reported.
     suite('POST', function() {
@@ -102,12 +98,27 @@ suite('Functional Tests', function() {
           expect(res, 'should redirect').to.redirect;
           expect(res, 'should redirect to /b/tests/'+test_thread_id).to.redirectTo(new RegExp('\/b\/tests/'+test_thread_id+''));
           done();
-        })
-      })
+        });
+      });
     });
     
+    // US 7: I can GET an entire thread with all it's replies from /api/replies/{board}?thread_id={thread_id}. Also hiding the same fields.
+    // The reported and delete_passwords fields will not be sent.
     suite('GET', function() {
-      
+      test('GET /api/replies/{board}?thread_id={thread_id}', function(done) {
+        chai.request(server)
+        .get('/api/replies/tests?thread_id='+test_thread_id)
+        .end(function(err, res) {
+          assert.equal(res.status, 200);
+          assert.hasAllKeys(res.body, ["_id", "text", "created_on", "bumped_on", "replies"]);
+          assert.doesNotHaveAllKeys(res.body, ["delete_password", "reported"]);
+          for (let i = 0; i < res.body.replies.length; i++) {
+            assert.hasAllKeys(res.body.replies[i], ["text", "created_on"]);
+            assert.doesNotHaveAllKeys(res.body.replies[i], ["delete_password", "reported"]);
+          }
+          done();
+        });
+      });
     });
     
     suite('PUT', function() {
