@@ -93,6 +93,8 @@ module.exports = function (app, db) {
         });
       }
     })
+
+
     
   app.route('/api/replies/:board')
     // US 5: I can POST a reply to a thead on a specific board by passing
@@ -164,7 +166,7 @@ module.exports = function (app, db) {
       }
     })
 
-    // US 8: I can delete a post(just changing the text to '[deleted]') if I send a DELETE request to /api/replies/{board}
+    // US 9: I can delete a post(just changing the text to '[deleted]') if I send a DELETE request to /api/replies/{board}
     // and pass along the thread_id, reply_id, & delete_password. (Text response will be 'incorrect password' or 'success')
     .delete(function(req, res) {
       let board = req.params.board;
