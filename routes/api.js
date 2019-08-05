@@ -46,6 +46,27 @@ module.exports = function (app, db) {
         }
       })
     })
+    // US 6: I can GET an array of the most recent 10 bumped threads on the board with 
+    // only the most recent 3 replies from /api/threads/{board}. The reported and delete_passwords fields will not be sent.
+    .get(function(req, res) {
+      let board = req.params.board;
+      db.collection(board).find({}, {
+        limit: 10,
+        // sort by bumped_on
+        sort: { bumped_on: -1 },
+        projection: {
+          // exclude fields
+          delete_password: 0,
+          reported: 0,
+          "replies.delete_password": 0,
+          "replies.reported": 0,
+          // return 3 most recent replies.
+          replies: { $slice: -3 }
+        }
+      }).toArray().then(result => {
+        res.json(result);
+      })
+    })
     
   app.route('/api/replies/:board')
   // US 5: I can POST a reply to a thead on a specific board by passing

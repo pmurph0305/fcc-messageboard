@@ -18,8 +18,12 @@ suite('Functional Tests', function() {
   let test_thread_id = '';
   suite('API ROUTING FOR /api/threads/:board', function() {
     
+
+    // US 4: I can POST a thread to a specific message board by passing form data text and delete_password to /api/threads/{board}.
+    // (Recomend res.redirect to board page /b/{board})
+    //  Saved will be _id, text, created_on(date&time), bumped_on(date&time, starts same as created_on), reported(boolean), delete_password, & replies(array).
     suite('POST', function() {
-      test('post a thread to /api/threads/:board', function(done) {
+      test('POST a thread to /api/threads/:board', function(done) {
         chai.request(server)
         .post('/api/threads/tests')
         .send({
@@ -39,8 +43,33 @@ suite('Functional Tests', function() {
       })
     });
     
+
+    // US 6: I can GET an array of the most recent 10 bumped threads on the board with only the most recent 3 replies from /api/threads/{board}. 
+    // The reported and delete_passwords fields will not be sent.
     suite('GET', function() {
-      
+      test('GET threads from /api/threads/:board', function(done) {
+        chai.request(server)
+        .get('/api/threads/tests')
+        .end(function(err, res) {
+          assert.equal(res.status, 200);
+          assert.isArray(res.body);
+          // max 10 threads
+          assert.isBelow(res.body.length, 11);
+          for (let i=0; i< res.body.length; i++) {
+            // max 4 replies
+            assert.isBelow(res.body[i].replies.length, 4);
+            // make sure we have the correct keys for each thread
+            assert.doesNotHaveAnyKeys(res.body[i], ["delete_password", "reported"]);
+            assert.hasAllKeys(res.body[i], ["text", "created_on", "bumped_on", "replies", "_id"]);
+            for(let j=0; j<res.body[i].replies.length; j++) {
+              // and make sure each reply has the correct keys as well.
+              assert.hasAllKeys(res.body[i].replies[j], ["text", "created_on"]);
+              assert.doesNotHaveAnyKeys(res.body[i].replies[j], ["delete_password", "reported"]);
+            }
+          }
+          done();
+        });
+      });
     });
     
     suite('DELETE', function() {
@@ -56,6 +85,9 @@ suite('Functional Tests', function() {
   
   suite('API ROUTING FOR /api/replies/:board', function() {
     
+    // I can POST a reply to a thead on a specific board by passing form data text, delete_password, & thread_id to /api/replies/{board} 
+    // and it will also update the bumped_on date to the comments date.(Recomend res.redirect to thread page /b/{board}/{thread_id})
+    // In the thread's 'replies' array will be saved _id, text, created_on, delete_password, & reported.
     suite('POST', function() {
       test('POST reply to /api/replies/{board}', function(done) {
         chai.request(server)
