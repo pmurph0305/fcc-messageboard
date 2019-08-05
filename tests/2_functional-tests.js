@@ -14,6 +14,7 @@ var expect = chai.expect;
 var ObjectID = require('mongodb').ObjectID;
 chai.use(chaiHttp);
 
+// US 12: Complete functional tests that wholely test routes and pass.
 suite('Functional Tests', function() {
 
   let test_thread_id = '';
@@ -110,8 +111,6 @@ suite('Functional Tests', function() {
       });
     });
     
-
-
     // US 10: I can report a thread and change it's reported value to true by sending a PUT request to /api/threads/{board}
     // and pass along the thread_id. (Text response will be 'success')
     suite('PUT', function() {
@@ -147,8 +146,6 @@ suite('Functional Tests', function() {
         })
       })
     });
-    
-
   });
   
   suite('API ROUTING FOR /api/replies/:board', function() {
@@ -247,8 +244,7 @@ suite('Functional Tests', function() {
     
     // US 9: I can delete a post(just changing the text to '[deleted]') if I send a DELETE request to /api/replies/{board} 
     // and pass along the thread_id, reply_id, & delete_password. (Text response will be 'incorrect password' or 'success')
-    suite('DELETE', function() {
-      
+    suite('DELETE', function() {     
       test("DELETE reply with incorrect then correct password", function(done) {
         chai.request(server)
         .get('/api/replies/tests?thread_id='+test_thread_id)
@@ -282,9 +278,6 @@ suite('Functional Tests', function() {
           });
         });
       });
-
     });
-    
   });
-
 });

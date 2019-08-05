@@ -5,15 +5,12 @@ var bodyParser  = require('body-parser');
 var expect      = require('chai').expect;
 var cors        = require('cors');
 var helmet      = require('helmet');
-//var expressMongoDB = require('express-mongo-db');
 var MongoClient = require('mongodb').MongoClient;
 var apiRoutes         = require('./routes/api.js');
 var fccTestingRoutes  = require('./routes/fcctesting.js');
 var runner            = require('./test-runner');
 
 var app = express();
-
-
 
 app.use('/public', express.static(process.cwd() + '/public'));
 app.use(cors({origin: '*'})); //For FCC testing purposes only
@@ -55,9 +52,6 @@ MongoClient.connect(process.env.DB, { useNewUrlParser: true }, function(err, cli
     //Routing for API 
     apiRoutes(app, db);
 
-    //Sample Front-end
-
-      
     //404 Not Found Middleware
     app.use(function(req, res, next) {
     res.status(404)
@@ -82,9 +76,6 @@ MongoClient.connect(process.env.DB, { useNewUrlParser: true }, function(err, cli
     }
     });
   }
-})
-
-
-
+});
 
 module.exports = app; //for testing
