@@ -15,6 +15,7 @@ chai.use(chaiHttp);
 
 suite('Functional Tests', function() {
 
+  let test_thread_id = '';
   suite('API ROUTING FOR /api/threads/:board', function() {
     
     suite('POST', function() {
@@ -26,9 +27,13 @@ suite('Functional Tests', function() {
           delete_password: 'delete test'
         })
         .end(function (err, res) {
+          //console.log(res);
           assert.equal(res.status, 200);
           expect(res).to.redirect;
-          expect(res).to.redirectTo(/\/b\/tests$/)
+          expect(res).to.redirectTo(/\/b\/tests/)
+          // save the resulting thread_id for future tests.
+          let id = res.redirects[0].match(/\w+$/);
+          test_thread_id = id[0];
           done();
         })
       })
@@ -52,7 +57,21 @@ suite('Functional Tests', function() {
   suite('API ROUTING FOR /api/replies/:board', function() {
     
     suite('POST', function() {
-      
+      test('POST reply to /api/replies/{board}', function(done) {
+        chai.request(server)
+        .post('/api/replies/tests')
+        .send({
+          text: 'test reply',
+          delete_password: 'test delete reply',
+          thread_id: test_thread_id,
+        })
+        .end(function(err, res) {
+          assert.equal(res.status, 200);
+          expect(res, 'should redirect').to.redirect;
+          expect(res, 'should redirect to /b/tests/'+test_thread_id).to.redirectTo(new RegExp('\/b\/tests/'+test_thread_id+''));
+          done();
+        })
+      })
     });
     
     suite('GET', function() {

@@ -9,6 +9,7 @@
 'use strict';
 
 var expect = require('chai').expect;
+var ObjectID = require('mongodb').ObjectID;
 
 module.exports = function (app, db) {
   
@@ -36,12 +37,55 @@ module.exports = function (app, db) {
           res.json({ message: "Database Error." })
         }
         else {
-          //(Recomend res.redirect to board page /b/{board}) 
-          res.redirect('/b/'+board);
+          //(Recomend res.redirect to board page /b/{board}), but /b/{board}/{thread_id} seems more useful.
+          if (result.ops.length) {
+            res.redirect('/b/'+board+'/'+result.ops[0]._id);
+          } else {
+            res.redirect('/b/'+board);
+          }
         }
       })
     })
     
-  app.route('/api/replies/:board');
+  app.route('/api/replies/:board')
+  // US 5: I can POST a reply to a thead on a specific board by passing
+  // form data text, delete_password, & thread_id to /api/replies/{board} 
+  // and it will also update the bumped_on date to the comments date.(Recomend res.redirect to thread page /b/{board}/{thread_id}) 
+  // In the thread's 'replies' array will be saved _id, text, created_on, delete_password, & reported.
+    .post(function(req, res) {
+      let text = req.body.text;
+      let delete_password = req.body.delete_password;
+      let thread_id = req.body.thread_id;
+      let board = req.params.board;
+      // make sure we have a valid thread_id.
+      if (!ObjectID.isValid(thread_id)) {
+        res.json({ message: "Invalid thread id." });
+      } else {
+        db.collection(board).findOneAndUpdate({
+          _id: ObjectID(thread_id)
+        }, {
+          $set: {
+            bumped_on: new Date()
+          },  
+          $push: { 
+            replies: {
+              text: text,
+              created_on: new Date,
+              delete_password: delete_password,
+              reported: false
+            }
+          }
+        }, function(err, result) {
+          if (err) {
+            console.log("DB ERROR:" + err); 
+            res.json({ message: "Database Error." })
+          }
+          else {
+            // (Recomend res.redirect to thread page /b/{board}/{thread_id}) 
+            res.redirect('/b/' + board + '/' + thread_id);
+          }
+        });
+      }
+    })
 
 };
