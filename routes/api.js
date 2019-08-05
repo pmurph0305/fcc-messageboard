@@ -213,4 +213,29 @@ module.exports = function (app, db) {
       }
     })
 
+    // US 11: I can report a reply and change it's reported value to true by sending a PUT request to /api/replies/{board}
+    // and pass along the thread_id & reply_id. (Text response will be 'success')
+    .put(function(req, res) {
+      let board = req.params.board;
+      let thread_id = req.body.thread_id;
+      let reply_id = req.body.reply_id;
+      if (!ObjectID.isValid(thread_id) || !ObjectID.isValid(reply_id)) {
+        res.sendStatus(400);
+      } else {
+        db.collection(board).findOneAndUpdate({
+          _id: ObjectID(thread_id),
+          replies: { $elemMatch: { _id: ObjectID(reply_id) }}
+        }, {
+          $set: { "replies.$.reported" : true}
+        }, function(err, result) {
+          if (err) res.sendStatus(500);
+          if (result.value) {
+            res.json({ message: "success" });
+          } else {
+            res.json({ message: "fail" });
+          }
+        });
+      }
+    })
+
 };

@@ -192,8 +192,57 @@ suite('Functional Tests', function() {
       });
     });
     
+    // US 11: I can report a reply and change it's reported value to true by sending a PUT request to /api/replies/{board}
+    //  and pass along the thread_id & reply_id. (Text response will be 'success')
     suite('PUT', function() {
+      test("PUT /api/replies/tests with valid, existing ids", function(done) {
+        chai.request(server)
+        .get('/api/replies/tests?thread_id='+test_thread_id)
+        .end(function(err, res) {
+          assert.equal(res.status, 200);
+          assert.isArray(res.body.replies);
+          assert.isAtLeast(res.body.replies.length, 1);
+          let reply_id = res.body.replies[0]["_id"];
+          chai.request(server)
+          .put('/api/replies/tests')
+          .send({
+            thread_id: test_thread_id,
+            reply_id: reply_id
+          })
+          .end(function(err2, res2) {
+            assert.equal(res2.status, 200);
+            assert.equal(res2.body.message, "success");
+            done();
+          });
+        });
+      });
       
+      test("PUT /api/replies/tests with valid thread_id, and valid but not-in-db reply_id", function(done) {
+        chai.request(server)
+        .put('/api/replies/tests')
+        .send({ 
+          thread_id: test_thread_id,
+          reply_id: ObjectID()
+        })
+        .end(function(err, res) {
+          assert.equal(res.status, 200);
+          assert.equal(res.body.message, "fail");
+          done();
+        });
+      });
+
+      test("PUT /api/replies/tests with invalid thread/reply_id", function(done) {
+        chai.request(server)
+        .put('/api/replies/tests')
+        .send({
+          thread_id: ":invalid",
+          reply_id: ":alsoinvalid."
+        })
+        .end(function(err, res) {
+          assert.equal(res.status, 400);
+          done();
+        })
+      });
     });
     
     // US 9: I can delete a post(just changing the text to '[deleted]') if I send a DELETE request to /api/replies/{board} 
