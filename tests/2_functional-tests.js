@@ -10,7 +10,7 @@ var chaiHttp = require('chai-http');
 var chai = require('chai');
 var assert = chai.assert;
 var server = require('../server');
-
+var expect = chai.expect;
 chai.use(chaiHttp);
 
 suite('Functional Tests', function() {
@@ -18,7 +18,20 @@ suite('Functional Tests', function() {
   suite('API ROUTING FOR /api/threads/:board', function() {
     
     suite('POST', function() {
-      
+      test('post a thread to /api/threads/:board', function(done) {
+        chai.request(server)
+        .post('/api/threads/tests')
+        .send({
+          text: 'test text',
+          delete_password: 'delete test'
+        })
+        .end(function (err, res) {
+          assert.equal(res.status, 200);
+          expect(res).to.redirect;
+          expect(res).to.redirectTo(/\/b\/tests$/)
+          done();
+        })
+      })
     });
     
     suite('GET', function() {
