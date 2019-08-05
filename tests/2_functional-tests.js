@@ -11,6 +11,7 @@ var chai = require('chai');
 var assert = chai.assert;
 var server = require('../server');
 var expect = chai.expect;
+var ObjectID = require('mongodb').ObjectID;
 chai.use(chaiHttp);
 
 suite('Functional Tests', function() {
@@ -109,8 +110,42 @@ suite('Functional Tests', function() {
       });
     });
     
+
+
+    // US 10: I can report a thread and change it's reported value to true by sending a PUT request to /api/threads/{board}
+    // and pass along the thread_id. (Text response will be 'success')
     suite('PUT', function() {
-      
+      test('PUT /api/threads/{board} with valid & non-exisiting thread id', function(done) {
+        chai.request(server)
+        .put('/api/threads/tests')
+        .send({thread_id: ObjectID()})
+        .end(function(err, res) {
+          assert.equal(res.status, 200);
+          assert.equal(res.body.message, "fail", "may fail if objectid() generates an existing objectid");
+          done();
+        })
+      });
+
+      test('PUT /api/threads/{board} with valid & existing thread id', function(done) {
+        chai.request(server)
+        .put('/api/threads/tests')
+        .send({thread_id: test_thread_id})
+        .end(function(err, res) {
+          assert.equal(res.status, 200);
+          assert.equal(res.body.message, "success");
+          done();
+        })
+      })
+
+      test('put /api/threads/{board} with invalid thread id', function(done) {
+        chai.request(server)
+        .put('/api/threads/tests')
+        .send({thread_id: ".invalidid:"})
+        .end(function(err, res) {
+          assert.equal(res.status, 400);
+          done();
+        })
+      })
     });
     
 

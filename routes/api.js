@@ -94,7 +94,28 @@ module.exports = function (app, db) {
       }
     })
 
-
+    // US 9: I can report a thread and change it's reported value to true by sending a 
+    // PUT request to /api/threads/{board} and pass along the thread_id. (Text response will be 'success')
+    .put(function(req, res) {
+      let thread_id = req.body.thread_id;
+      let board = req.params.board;
+      if (!ObjectID.isValid(thread_id)) {
+        res.sendStatus(400);
+      } else {
+        db.collection(board).findOneAndUpdate({
+          _id: ObjectID(thread_id)
+        },{
+          $set: { reported: true }
+        }, function(err, result) {
+          if (err) res.sendStatus(500);
+          if (result.value) {
+            res.json({ message: "success" });
+          } else {
+            res.json({ message: "fail" })
+          }
+        });
+      }
+    });
     
   app.route('/api/replies/:board')
     // US 5: I can POST a reply to a thead on a specific board by passing
